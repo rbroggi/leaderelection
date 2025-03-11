@@ -38,12 +38,6 @@ func TestLeaderElection(t *testing.T) {
 				LeaseStore:      store,
 				CandidateID:     candidateID,
 				ReleaseOnCancel: true, // Important for later scenarios.
-				OnStartedLeading: func(ctx context.Context) {
-				},
-				OnStoppedLeading: func() {
-				},
-				OnNewLeader: func(identity string) {
-				},
 			}
 			elector, err := le.NewElector(config)
 			require.NoError(t, err, "Failed to create elector")
@@ -134,12 +128,6 @@ func TestLeaderElection(t *testing.T) {
 				LeaseStore:      store,
 				CandidateID:     candidateID,
 				ReleaseOnCancel: false,
-				OnStartedLeading: func(ctx context.Context) {
-				},
-				OnStoppedLeading: func() {
-				},
-				OnNewLeader: func(identity string) {
-				},
 			}
 
 			elector, err := le.NewElector(config)

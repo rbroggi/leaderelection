@@ -34,11 +34,11 @@ type ElectorConfig struct {
 	// the lease duration has passed even during a graceful shutdown.
 	ReleaseOnCancel bool
 	// OnStartedLeading is called when the candidate starts leading.
-	OnStartedLeading func(ctx context.Context)
+	OnStartedLeading func(candidateIdentity string)
 	// OnStoppedLeading is called when the candidate stops leading.
-	OnStoppedLeading func()
+	OnStoppedLeading func(candidateIdentity string)
 	// OnNewLeader is called when a new leader is elected.
-	OnNewLeader func(identity string)
+	OnNewLeader func(candidateIdentity string, newLeaderIdentity string)
 }
 
 // Elector performs leader election.
@@ -58,13 +58,19 @@ func NewElector(cfg ElectorConfig) (*Elector, error) {
 		return nil, errors.New("retry period must be greater than zero")
 	}
 	if cfg.OnStartedLeading == nil {
-		return nil, errors.New("OnStartedLeading callback is required")
+		cfg.OnStartedLeading = func(string) {
+			// nothing
+		}
 	}
 	if cfg.OnStoppedLeading == nil {
-		return nil, errors.New("OnStoppedLeading callback is required")
+		cfg.OnStoppedLeading = func(string) {
+			// nothing
+		}
 	}
 	if cfg.OnNewLeader == nil {
-		return nil, errors.New("OnNewLeader callback is required")
+		cfg.OnNewLeader = func(string, string) {
+			// nothing
+		}
 	}
 
 	return &Elector{
@@ -113,7 +119,7 @@ func (le *Elector) tryAcquireOrRenew(ctx context.Context) bool {
 			return false
 		}
 		le.setObservedRecord(leaseLeaderRecord)
-		le.config.OnStartedLeading(ctx)
+		le.config.OnStartedLeading(le.config.CandidateID)
 		return true
 	}
 
@@ -121,7 +127,7 @@ func (le *Elector) tryAcquireOrRenew(ctx context.Context) bool {
 
 	if !le.equalLastObservedRecord(lease) {
 		if le.getObservedRecord().HolderIdentity != lease.HolderIdentity {
-			le.config.OnNewLeader(lease.HolderIdentity)
+			le.config.OnNewLeader(lease.HolderIdentity, lease.HolderIdentity)
 		}
 		le.setObservedRecord(lease)
 	}
@@ -147,7 +153,7 @@ func (le *Elector) tryAcquireOrRenew(ctx context.Context) bool {
 
 	le.setObservedRecord(leaseLeaderRecord)
 	if takeover {
-		le.config.OnStartedLeading(ctx)
+		le.config.OnStartedLeading(le.config.CandidateID)
 	}
 
 	return true
@@ -165,7 +171,7 @@ func (le *Elector) release() bool {
 		return true
 	}
 
-	le.config.OnStoppedLeading()
+	le.config.OnStoppedLeading(le.config.CandidateID)
 
 	now := time.Now()
 	releasedLease := &Lease{

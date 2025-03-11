@@ -76,11 +76,11 @@ type ElectorConfig struct {
     // the lease duration has passed even during a graceful shutdown.
     ReleaseOnCancel bool
     // OnStartedLeading is called when the candidate starts leading.
-    OnStartedLeading func(ctx context.Context)
+    OnStartedLeading func(candidateIdentity string)
     // OnStoppedLeading is called when the candidate stops leading.
-    OnStoppedLeading func()
+    OnStoppedLeading func(candidateIdentity string)
     // OnNewLeader is called when a new leader is elected.
-    OnNewLeader func(identity string)
+    OnNewLeader func(candidateIdentity string, newLeaderIdentity string)
 }
 ```
 

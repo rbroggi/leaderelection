@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	le "github.com/rbroggi/leaderelection"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	le "github.com/rbroggi/leaderelection"
 )
 
 func TestLeaderElection(t *testing.T) {
@@ -28,7 +28,7 @@ func TestLeaderElection(t *testing.T) {
 	// Ensure that there is no existing lease
 
 	// --- Test Context ---
-	electors := make(map[string]leaderAndCnl) //Keep track of electors for later shutdown
+	electors := make(map[string]leaderAndCnl) // Keep track of electors for later shutdown
 	// --- Scenario 1: No Leader, First Leader Election ---
 	t.Run("Initial Election", func(t *testing.T) {
 		for _, candidateID := range candidates {
@@ -65,18 +65,17 @@ func TestLeaderElection(t *testing.T) {
 			leadersCount := countLeaders(electors)
 			return leadersCount != 1
 		}, 2*retryPeriod, 100*time.Millisecond, "There should be exactly one leader")
-
 	})
 
 	// --- Scenario 2: Graceful Shutdown and Leader Takeover ---
 	t.Run("Graceful Shutdown and Takeover", func(t *testing.T) {
-		//Find current leader
+		// Find current leader
 		currentLeader := findLeader(electors)
 		require.NotEmpty(t, currentLeader, "There must be a leader for this test")
 
 		log.Printf("Current leader before shutdown: %s", currentLeader)
 
-		//Simulate graceful shutdown of current leader.
+		// Simulate graceful shutdown of current leader.
 		// find index of the current leader elector
 		electors[currentLeader].cancel() // Stop the elector for the current leader.
 
@@ -159,7 +158,7 @@ func TestLeaderElection(t *testing.T) {
 			return leadersCount == 1
 		}, 3*retryPeriod, 100*time.Millisecond, "There should be exactly one leader [%d found]", countLeaders(electors))
 
-		//Find Current Leader
+		// Find Current Leader
 		currentLeader := findLeader(electors)
 		require.NotEmpty(t, currentLeader, "There must be a leader for this test")
 		log.Printf("Current leader before lease expiration: %s", currentLeader)

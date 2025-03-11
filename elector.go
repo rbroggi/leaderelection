@@ -180,7 +180,8 @@ func (le *Elector) release() bool {
 	le.setObservedRecord(releasedLease)
 
 	if le.config.ReleaseOnCancel {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		releaseTimeout := 5 * time.Second
+		ctx, cancel := context.WithTimeout(context.Background(), releaseTimeout)
 		defer cancel()
 		if err := le.config.LeaseStore.UpdateLease(ctx, releasedLease); err != nil {
 			log.Error("Failed to release lease", errLogKey, err)

@@ -51,6 +51,6 @@ jobs:
           fetch-depth: 0 # Required for semantic-release
 
       - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.SEMVER_PUSH_GH_TOKEN }}
+        uses: go-semantic-release/action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}

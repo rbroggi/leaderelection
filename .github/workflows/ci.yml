@@ -35,6 +35,8 @@ jobs:
           version: v1.64
 
   release:
+    permissions:
+      contents: write
     name: Release
     needs: test
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'

@@ -94,3 +94,4 @@ Known implementations are:
 
 - [InMemory Lease Store](../internal/inmemory/store.go) - for testing purposes.
 - [Redis Lease Store](https://github.com/rbroggi/redisleasestore); 
+- [MongoDB Lease Store](https://github.com/rbroggi/mongoleasestore); 

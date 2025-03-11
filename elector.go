@@ -17,14 +17,28 @@ func SetLogger(lgr Logger) {
 
 // ElectorConfig holds the configuration for the Elector.
 type ElectorConfig struct {
-	LeaseDuration    time.Duration
-	RetryPeriod      time.Duration
-	LeaseStore       LeaseStore
-	CandidateID      string
+	// LeaseDuration is the duration that non-leader candidates will wait before
+	// attempting to acquire the lease (trying to become leaders).
+	LeaseDuration time.Duration
+	// RetryPeriod is the duration the LeaderElector clients wait between
+	// acquiring/renewing attempts.
+	RetryPeriod time.Duration
+	// LeaseStore is the store that will be used to manage the lease object.
+	LeaseStore LeaseStore
+	// CandidateID is the id of the candidate that will be used to identify the
+	// leader. Must be unique across all clients.
+	CandidateID string
+	// ReleaseOnCancel will release the lease when the context is canceled
+	// effectively anticipating the ability for other candidates to acquire the
+	// lease - without this set, other candidates will only acquire the lease after
+	// the lease duration has passed even during a graceful shutdown.
+	ReleaseOnCancel bool
+	// OnStartedLeading is called when the candidate starts leading.
 	OnStartedLeading func(ctx context.Context)
+	// OnStoppedLeading is called when the candidate stops leading.
 	OnStoppedLeading func()
-	OnNewLeader      func(identity string)
-	ReleaseOnCancel  bool // Add this flag.
+	// OnNewLeader is called when a new leader is elected.
+	OnNewLeader func(identity string)
 }
 
 // Elector performs leader election.

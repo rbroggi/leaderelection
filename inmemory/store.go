@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sync"
 
-	le "leaderelection"
+	le "github.com/rbroggi/leaderelection"
 )
 
 type LeaseStore struct {

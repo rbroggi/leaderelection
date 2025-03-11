@@ -11,7 +11,8 @@ var (
 )
 
 type LeaseStore interface {
-	// GetLease retrieves the current lease.
+	// GetLease retrieves the current lease. Should return ErrLeaseNotFound if the
+	// lease does not exist.
 	GetLease(ctx context.Context) (*Lease, error)
 	// UpdateLease updates the lease if the lease exists.
 	UpdateLease(ctx context.Context, newLease *Lease) error

@@ -1,13 +1,18 @@
 # Leaderelection Go Library
 
-The `leaderelection` Go library provides a mechanism for leader election among a group of distributed processes. This library ensures that only one process acts as the leader at any given time, which is useful for tasks that require a single point of control.
+The `leaderelection` Go library provides a mechanism for leader election among a group of distributed processes. 
+This library ensures that only one process acts as the leader at any given time, which is useful for tasks that require a single point of control.
+
+This library is heavily inspired by the [Kubernetes leader election client-go](https://pkg.go.dev/k8s.io/client-go/tools/leaderelection) 
+and it abstracts the lease-store interface. The main goal is to provide a simple and extendable way to implement leader election with different 
+lease-persistent layers and without the dependency on Kubernetes.
 
 ## Features
 
 - Leader election using leases
 - Graceful shutdown and leader takeover
 - Lease expiration and automatic leader re-election
-- Allows for custom lease store extensions (e.g., etcd, consul, redis.). In this repo you can find an in-memory lease store implementation example.
+- Allows for custom lease store extensions (e.g., etcd, consul, redis, postgress, mongo.). In this repo you can find an in-memory lease store implementation example.
 
 ## Installation
 
@@ -27,8 +32,8 @@ import (
 	"context"
 	"log"
 	"time"
-	"leaderelection"
-	"leaderelection/inmemory"
+	"github.com/rbroggi/leaderelection"
+	"github.com/rbroggi/leaderelection/inmemory"
 )
 
 func main() {
@@ -72,6 +77,9 @@ To run the tests, use the following command:
 ```sh
 go test ./...
 ```
+## Docs
+
+More documentation can be found [here](./docs/docs.md).
 
 ## License
 

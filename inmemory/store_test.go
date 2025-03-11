@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	le "leaderelection"
+	le "github.com/rbroggi/leaderelection"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -1,0 +1,42 @@
+@startuml
+
+skinparam component {
+  BackgroundColor<<lib>> LightBlue
+  BorderColor<<lib>> DarkBlue
+}
+
+
+  component "Pod/Process 1" as Pod1 <<distribute-processes>> {
+      component "Leader Election Client" as Lib1 <<lib>> {
+          [Store Client Implementation] as Client1
+      }
+  }
+
+  component "Pod/Process 2" as Pod2 <<distribute-processes>> {
+      component "Leader Election Client" as Lib2 <<lib>> {
+          [Store Client Implementation] as Client2
+      }
+  }
+
+  component "Pod/Process N" as PodN <<distribute-processes>> {
+      component "Leader Election Client" as LibN <<lib>> {
+          [Store Client Implementation] as ClientN
+      }
+  }
+
+  database "store" as store {
+      [Lease Object] as Lease
+      note right of Lease
+        HolderIdentity
+        LeaseDuration
+        AcquireTime
+        RenewTime
+        LeaderTransitions
+      end note
+  }
+
+Client1 -d-> store : Create/Update/Get Lease
+Client2 -d-> store : Create/Update/Get Lease
+ClientN -d-> store : Create/Update/Get Lease
+
+@enduml

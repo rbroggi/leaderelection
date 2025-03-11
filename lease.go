@@ -10,7 +10,7 @@ type Lease struct {
 	AcquireTime       time.Time
 	RenewTime         time.Time
 	LeaseDuration     time.Duration
-	LeaderTransitions int
+	LeaderTransitions uint32
 }
 
 func (l *Lease) HasHolder() bool {

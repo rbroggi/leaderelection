@@ -52,7 +52,5 @@ jobs:
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
-        with:
-          semantic_version: 17
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_CONTENT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SEMVER_PUSH_GH_TOKEN }}

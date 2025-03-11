@@ -90,4 +90,4 @@ You can implement your own store by implementing the `LeaseStore` interface in [
 
 Known implementations are:
 
-- [InMemory Lease Store](../inmemory/store.go) - for testing purposes.
+- [InMemory Lease Store](../internal/inmemory/store.go) - for testing purposes.

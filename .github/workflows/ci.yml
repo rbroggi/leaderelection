@@ -55,4 +55,4 @@ jobs:
         with:
           semantic_version: 17
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_CONTENT_TOKEN }}

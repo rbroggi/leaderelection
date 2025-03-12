@@ -85,3 +85,16 @@ More documentation can be found [here](./docs/docs.md).
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+### Extending and Implementing your own Store
+
+You can implement your own store by implementing the `LeaseStore` interface in [store.go](store.go) using your own store.
+
+Notice that you can use the test case [store_test.go](internal/inmemory/store_test.go) to test your implementation by making very few changes.
+
+Examples of store implementations are:
+
+- [InMemory Lease Store](internal/inmemory/store.go) - for testing purposes.
+- [Redis Lease Store](https://github.com/rbroggi/redisleasestore);
+- [MongoDB Lease Store](https://github.com/rbroggi/mongoleasestore);
+- [Etcd Lease Store](https://github.com/rbroggi/etcdleasestore);
+- [Postgres Lease Store](https://github.com/rbroggi/postgresleasestore);

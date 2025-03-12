@@ -83,17 +83,3 @@ type ElectorConfig struct {
     OnNewLeader func(candidateIdentity string, newLeaderIdentity string)
 }
 ```
-
-### Extending and Implementing your own store
-
-You can implement your own store by implementing the `LeaseStore` interface in [store.go](../store.go) using your own store.
-
-Notice that you can use the test case [store_test.go](../internal/inmemory/store_test.go) to test your implementation.
-
-Known implementations are:
-
-- [InMemory Lease Store](../internal/inmemory/store.go) - for testing purposes.
-- [Redis Lease Store](https://github.com/rbroggi/redisleasestore); 
-- [MongoDB Lease Store](https://github.com/rbroggi/mongoleasestore); 
-- [Etcd Lease Store](https://github.com/rbroggi/etcdleasestore);
-- [Postgres Lease Store](https://github.com/rbroggi/postgresleasestore);

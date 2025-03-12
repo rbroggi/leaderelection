@@ -24,6 +24,12 @@ func TestLeaderElection(t *testing.T) {
 		"candidate-3",
 	}
 
+	// --- Test Logger ---
+	// Uncomment to enable more logging
+	// le.SetLogger(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	//  	Level: slog.LevelDebug,
+	// })))
+
 	store := NewInMemoryLeaseStore() // Use the *same* key.
 	// --- Test Context ---
 	electors := make(map[string]leaderAndCnl) // Keep track of electors for later shutdown

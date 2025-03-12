@@ -90,6 +90,7 @@ func NewElector(cfg ElectorConfig) (*Elector, error) {
 func (le *Elector) Run(ctx context.Context) <-chan struct{} {
 	done := make(chan struct{})
 	go func() {
+		log.Info("Starting leader election", "candidate", le.config.CandidateID)
 		defer close(done)
 		for range time.Tick(le.config.RetryPeriod) {
 			select {
@@ -98,9 +99,7 @@ func (le *Elector) Run(ctx context.Context) <-chan struct{} {
 				le.release()
 				return
 			default:
-				if acquired := le.tryAcquireOrRenew(ctx); acquired {
-					log.Debug("Acquired or renewed lease", "candidate", le.config.CandidateID, "lease", le.getObservedRecord())
-				}
+				le.tryAcquireOrRenew(ctx)
 			}
 		}
 	}()
@@ -114,6 +113,12 @@ func (le *Elector) reportMetrics() {
 func (le *Elector) tryAcquireOrRenew(ctx context.Context) bool {
 	defer le.reportMetrics()
 	now := time.Now()
+	log.Debug(
+		"try acquiring or renewing lease",
+		"candidate", le.config.CandidateID,
+		"time", now,
+	)
+
 	leaseLeaderRecord := &Lease{
 		HolderIdentity: le.config.CandidateID,
 		LeaseDuration:  le.config.LeaseDuration,
@@ -127,6 +132,11 @@ func (le *Elector) tryAcquireOrRenew(ctx context.Context) bool {
 			log.Error("Error getting lease", errLogKey, err)
 			return false
 		}
+		log.Debug(
+			"lease not found, creating lease",
+			"candidate", le.config.CandidateID,
+			"lease", leaseLeaderRecord,
+		)
 		if err := le.config.LeaseStore.CreateLease(ctx, leaseLeaderRecord); err != nil {
 			log.Error("Error creating lease", errLogKey, err)
 			return false
@@ -135,11 +145,27 @@ func (le *Elector) tryAcquireOrRenew(ctx context.Context) bool {
 		le.config.OnStartedLeading(le.config.CandidateID)
 		return true
 	}
-
-	log.Debug("try acquiring/renewing lease", "candidate", le.config.CandidateID, "lease", lease)
+	log.Debug(
+		"lease found",
+		"candidate", le.config.CandidateID,
+		"lease", lease,
+	)
 
 	if !le.equalLastObservedRecord(lease) {
-		if le.getObservedRecord().HolderIdentity != lease.HolderIdentity {
+		oldLease := le.getObservedRecord()
+		log.Debug(
+			"observed record changed",
+			"candidate", le.config.CandidateID,
+			"newLease", lease,
+			"oldLease", oldLease,
+		)
+		if oldLease.HolderIdentity != lease.HolderIdentity {
+			log.Debug(
+				"new leader elected",
+				"candidate", le.config.CandidateID,
+				"newLeader", lease.HolderIdentity,
+				"oldLeader", oldLease.HolderIdentity,
+			)
 			le.config.OnNewLeader(lease.HolderIdentity, lease.HolderIdentity)
 		}
 		le.setObservedRecord(lease)
@@ -152,9 +178,11 @@ func (le *Elector) tryAcquireOrRenew(ctx context.Context) bool {
 
 	var takeover bool
 	if le.IsLeader() {
+		log.Debug("renewing lease", "candidate", le.config.CandidateID)
 		leaseLeaderRecord.AcquireTime = lease.AcquireTime
 		leaseLeaderRecord.LeaderTransitions = lease.LeaderTransitions
 	} else {
+		log.Debug("taking over lease", "candidate", le.config.CandidateID)
 		leaseLeaderRecord.LeaderTransitions = lease.LeaderTransitions + 1
 		takeover = true
 	}
@@ -163,6 +191,8 @@ func (le *Elector) tryAcquireOrRenew(ctx context.Context) bool {
 		log.Error("Failed to update lease", errLogKey, err)
 		return false
 	}
+
+	log.Debug("lease acquired or renewed", "candidate", le.config.CandidateID, "lease", leaseLeaderRecord)
 
 	le.setObservedRecord(leaseLeaderRecord)
 	if takeover {
@@ -207,6 +237,7 @@ func (le *Elector) release() bool {
 			log.Error("Failed to release lease", errLogKey, err)
 			return false
 		}
+		log.Debug("lease released", "candidate", le.config.CandidateID)
 	}
 
 	return true

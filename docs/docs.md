@@ -96,3 +96,4 @@ Known implementations are:
 - [Redis Lease Store](https://github.com/rbroggi/redisleasestore); 
 - [MongoDB Lease Store](https://github.com/rbroggi/mongoleasestore); 
 - [Etcd Lease Store](https://github.com/rbroggi/etcdleasestore);
+- [Postgres Lease Store](https://github.com/rbroggi/postgresleasestore);

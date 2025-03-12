@@ -41,7 +41,7 @@ type ElectorConfig struct {
 	OnNewLeader func(candidateIdentity string, newLeaderIdentity string)
 	// ReportMetric is called to report the current candidate leader status.
 	// This is invoked on every retry period.
-	ReportMetric func(ctx context.Context, candidateIdentity string, isLeader bool)
+	ReportMetric func(candidateIdentity string, isLeader bool)
 }
 
 // Elector performs leader election.
@@ -76,7 +76,7 @@ func NewElector(cfg ElectorConfig) (*Elector, error) {
 		}
 	}
 	if cfg.ReportMetric == nil {
-		cfg.ReportMetric = func(ctx context.Context, candidateIdentity string, isLeader bool) {
+		cfg.ReportMetric = func(candidateIdentity string, isLeader bool) {
 			// nothing
 		}
 	}
@@ -92,7 +92,6 @@ func (le *Elector) Run(ctx context.Context) <-chan struct{} {
 	go func() {
 		defer close(done)
 		for range time.Tick(le.config.RetryPeriod) {
-			le.config.ReportMetric(ctx, le.config.CandidateID, le.IsLeader())
 			select {
 			case <-ctx.Done():
 				log.Info("Context cancelled, stopping leader election.", "candidate", le.config.CandidateID)
@@ -108,7 +107,12 @@ func (le *Elector) Run(ctx context.Context) <-chan struct{} {
 	return done
 }
 
+func (le *Elector) reportMetrics() {
+	le.config.ReportMetric(le.config.CandidateID, le.IsLeader())
+}
+
 func (le *Elector) tryAcquireOrRenew(ctx context.Context) bool {
+	defer le.reportMetrics()
 	now := time.Now()
 	leaseLeaderRecord := &Lease{
 		HolderIdentity: le.config.CandidateID,
@@ -176,6 +180,7 @@ func expired(
 }
 
 func (le *Elector) release() bool {
+	defer le.reportMetrics()
 	if !le.IsLeader() {
 		return true
 	}

@@ -25,12 +25,18 @@ func TestLeaderElection(t *testing.T) {
 	}
 
 	store := NewInMemoryLeaseStore() // Use the *same* key.
-	// Ensure that there is no existing lease
-
 	// --- Test Context ---
 	electors := make(map[string]leaderAndCnl) // Keep track of electors for later shutdown
 	// --- Scenario 1: No Leader, First Leader Election ---
 	t.Run("Initial Election", func(t *testing.T) {
+		// Ensure that there is no existing lease
+		// Define a map to store the leader status
+		leaderStatus := make(map[string]bool)
+
+		// Create a ReportMetric function that updates the map
+		reportMetric := func(candidateID string, isLeader bool) {
+			leaderStatus[candidateID] = isLeader
+		}
 		for _, candidateID := range candidates {
 			config := le.ElectorConfig{
 				LeaseDuration:   leaseDuration,
@@ -38,6 +44,7 @@ func TestLeaderElection(t *testing.T) {
 				LeaseStore:      store,
 				CandidateID:     candidateID,
 				ReleaseOnCancel: true, // Important for later scenarios.
+				ReportMetric:    reportMetric,
 			}
 			elector, err := le.NewElector(config)
 			require.NoError(t, err, "Failed to create elector")
@@ -54,6 +61,8 @@ func TestLeaderElection(t *testing.T) {
 			leadersCount := countLeaders(electors)
 			return leadersCount == 1
 		}, 2*retryPeriod, 100*time.Millisecond, "There should be exactly one leader [%d] found", countLeaders(electors))
+
+		require.Equal(t, countLeadersMetric(leaderStatus), 1, "There should be exactly one leader in the metric map [%d] found", countLeadersMetric(leaderStatus))
 
 		require.Neverf(t, func() bool {
 			leadersCount := countLeaders(electors)
@@ -208,6 +217,17 @@ func countLeaders(electors map[string]leaderAndCnl) int {
 	leadersCount := 0
 	for _, elector := range electors {
 		if elector.elector.IsLeader() {
+			leadersCount++
+		}
+	}
+	return leadersCount
+}
+
+func countLeadersMetric(electors map[string]bool) int {
+	// count electors that are leading
+	leadersCount := 0
+	for _, isLeader := range electors {
+		if isLeader {
 			leadersCount++
 		}
 	}

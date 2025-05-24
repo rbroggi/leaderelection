@@ -3,6 +3,7 @@ package inmemory
 import (
 	"context"
 	"log"
+	"sync"
 	"testing"
 	"time"
 
@@ -37,11 +38,11 @@ func TestLeaderElection(t *testing.T) {
 	t.Run("Initial Election", func(t *testing.T) {
 		// Ensure that there is no existing lease
 		// Define a map to store the leader status
-		leaderStatus := make(map[string]bool)
+		var leaderStatus sync.Map
 
 		// Create a ReportMetric function that updates the map
 		reportMetric := func(candidateID string, isLeader bool) {
-			leaderStatus[candidateID] = isLeader
+			leaderStatus.Store(candidateID, isLeader)
 		}
 		for _, candidateID := range candidates {
 			config := le.ElectorConfig{
@@ -68,7 +69,7 @@ func TestLeaderElection(t *testing.T) {
 			return leadersCount == 1
 		}, 2*retryPeriod, 100*time.Millisecond, "There should be exactly one leader [%d] found", countLeaders(electors))
 
-		require.Equal(t, countLeadersMetric(leaderStatus), 1, "There should be exactly one leader in the metric map [%d] found", countLeadersMetric(leaderStatus))
+		require.Equal(t, countLeadersMetric(&leaderStatus), 1, "There should be exactly one leader in the metric map [%d] found", countLeadersMetric(&leaderStatus))
 
 		require.Neverf(t, func() bool {
 			leadersCount := countLeaders(electors)
@@ -229,14 +230,16 @@ func countLeaders(electors map[string]leaderAndCnl) int {
 	return leadersCount
 }
 
-func countLeadersMetric(electors map[string]bool) int {
+func countLeadersMetric(electors *sync.Map) int {
 	// count electors that are leading
 	leadersCount := 0
-	for _, isLeader := range electors {
-		if isLeader {
+	// Iterate over the map
+	electors.Range(func(key, value interface{}) bool {
+		if isLeader, ok := value.(bool); ok && isLeader {
 			leadersCount++
 		}
-	}
+		return true
+	})
 	return leadersCount
 }
 
